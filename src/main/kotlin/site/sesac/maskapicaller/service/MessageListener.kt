@@ -27,6 +27,9 @@ class MessageListener(
 
         if (resultPhotoName == "402"){
             messageSender.sendMessage("""{"mail_type":"TokenException","user_mail":"hwanrim00@gmail.com"}""","mail")
+            if( dbDelete.deleteOnFail(maskAPIMessage.userMail)) {
+                messageSender.sendMessage("""{"mail_type":"F","user_mail":"${maskAPIMessage.userMail}"}""", "mail")
+            }
             logger.info { "${maskAPIMessage.userMail} : 402 Process Done" }
         }
         else if (resultPhotoName != "error"){
