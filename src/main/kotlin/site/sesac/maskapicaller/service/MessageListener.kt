@@ -27,20 +27,21 @@ class MessageListener(
 
         if (resultPhotoName == "402"){
             messageSender.sendMessage("""{"mail_type":"TokenException","user_mail":"hwanrim00@gmail.com"}""","mail")
+            logger.info { "${maskAPIMessage.userMail} : 402 Process Done" }
         }
-        else {
+        else if (resultPhotoName != "error"){
             messageSender.sendMessage(
                 """{"originPhoto":"${maskAPIMessage.originPhoto}","prompt":"${maskAPIMessage.prompt}","userMail":"${maskAPIMessage.userMail}","maskPhoto":"$resultPhotoName"}"""
                     .trimIndent(), "mix"
             )
-
-
-
             logger.info { "${maskAPIMessage.userMail} : Process Done" }
+        }
+
+        else {
+            throw Exception()
         }
     }catch (e : Exception){
         logger.error { "Process error" }
-        throw Exception()
     }
 
     @RabbitListener(queues = ["MA-DLQ"], containerFactory = "prefetchOneContainerFactory")
@@ -48,9 +49,9 @@ class MessageListener(
         val objectMapper = jacksonObjectMapper()
         val maskAPIMessage: MaskAPIMessage = objectMapper.readValue(String(message.body), MaskAPIMessage::class.java)
         logger.info { "${maskAPIMessage.userMail} : DLQ Get Message" }
-        dbDelete.deleteOnFail(maskAPIMessage.userMail)
-        messageSender.sendMessage("""{"mail_type":"F","user_mail":"${maskAPIMessage.userMail}"}""","mail")
-
+       if( dbDelete.deleteOnFail(maskAPIMessage.userMail)) {
+           messageSender.sendMessage("""{"mail_type":"F","user_mail":"${maskAPIMessage.userMail}"}""", "mail")
+       }
     }
 
 

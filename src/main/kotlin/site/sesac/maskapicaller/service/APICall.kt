@@ -4,6 +4,7 @@ import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.*
 import org.springframework.stereotype.Service
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestTemplate
 import site.sesac.maskapicaller.data.MaskAPIResponse
 
@@ -14,7 +15,7 @@ class APICall(private val base64EnDecoder: Base64EnDecoder) {
     private lateinit var apikey: String
 
     fun call(originPhoto: String, userMail: String): String {
-        try {
+
             val restTemplate = RestTemplate()
             val requestUrl = """https://api.remove.bg/v1.0/removebg""" // 실제 엔드포인트로 변경해야 함
 
@@ -41,7 +42,7 @@ class APICall(private val base64EnDecoder: Base64EnDecoder) {
   "bg_color": "",
   "bg_image_url": ""
 }""".trimIndent()
-
+        try {
             val requestEntity = HttpEntity(requestBody, requestHeaders)
 
 
@@ -51,23 +52,27 @@ class APICall(private val base64EnDecoder: Base64EnDecoder) {
                 requestEntity,
                 MaskAPIResponse::class.java
             )
-            if (response.statusCode != HttpStatus.PAYMENT_REQUIRED && response.statusCode != HttpStatus.OK) {
+
+         if ( response.statusCode != HttpStatus.OK) {
                 logger.warn { "Request failed with status code: ${response.statusCode}" }
-                throw Exception()
+              return "error"
             }
-            else if(response.statusCode == HttpStatus.PAYMENT_REQUIRED) {
-                logger.warn { "토큰 교체 필요" }
-                return "402"
-            }
+
+
             val resultPhotoName = "${userMail}_${System.currentTimeMillis()}_mask.jpg"
             response.body?.data?.resultB64?.let { base64EnDecoder.decodeImage(it, resultPhotoName) }
 
             return resultPhotoName
 
-        }catch (e: Exception) {
-
-            e.printStackTrace()
-            throw Exception()
+        }catch (e: HttpClientErrorException) {
+            if(e.statusCode == HttpStatus.PAYMENT_REQUIRED) {
+                logger.warn { "토큰 교체 필요" }
+                return "402"
+            }
+            else{
+                e.printStackTrace()
+                throw Exception()
+            }
         }
     }
 }

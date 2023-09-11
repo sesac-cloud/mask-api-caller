@@ -13,4 +13,6 @@ interface PictureDelete : JpaRepository<Picture, Int> {
     @OneToOne(targetEntity = Picture::class)
     @Query("DELETE Picture u WHERE u.userMail = :email AND u.jobStat = 'N'")
     fun deleteOnFail(email: String)
+    fun findByUserMailAndJobStat(userMail: String, status: String): Picture?
+
 }
