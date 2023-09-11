@@ -51,11 +51,14 @@ class APICall(private val base64EnDecoder: Base64EnDecoder) {
                 requestEntity,
                 MaskAPIResponse::class.java
             )
-            if (response.statusCode != HttpStatus.OK) {
+            if (response.statusCode != HttpStatus.PAYMENT_REQUIRED && response.statusCode != HttpStatus.OK) {
                 logger.warn { "Request failed with status code: ${response.statusCode}" }
                 throw Exception()
             }
-
+            else if(response.statusCode == HttpStatus.PAYMENT_REQUIRED) {
+                logger.warn { "토큰 교체 필요" }
+                return "402"
+            }
             val resultPhotoName = "${userMail}_${System.currentTimeMillis()}_mask.jpg"
             response.body?.data?.resultB64?.let { base64EnDecoder.decodeImage(it, resultPhotoName) }
 

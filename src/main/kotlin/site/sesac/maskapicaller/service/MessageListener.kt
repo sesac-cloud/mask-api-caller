@@ -25,13 +25,19 @@ class MessageListener(
 
         val resultPhotoName = apiCall.call(maskAPIMessage.originPhoto, maskAPIMessage.userMail)
 
-        messageSender.sendMessage("""{"originPhoto":"${maskAPIMessage.originPhoto}","prompt":"${maskAPIMessage.prompt}","userMail":"${maskAPIMessage.userMail}","maskPhoto":"$resultPhotoName"}"""
-            .trimIndent(),"mix")
+        if (resultPhotoName == "402"){
+            messageSender.sendMessage("""{"mail_type":"TokenException","user_mail":"hwanrim00@gmail.com"}""","mail")
+        }
+        else {
+            messageSender.sendMessage(
+                """{"originPhoto":"${maskAPIMessage.originPhoto}","prompt":"${maskAPIMessage.prompt}","userMail":"${maskAPIMessage.userMail}","maskPhoto":"$resultPhotoName"}"""
+                    .trimIndent(), "mix"
+            )
 
 
 
-        logger.info { "${maskAPIMessage.userMail} : Process Done" }
-
+            logger.info { "${maskAPIMessage.userMail} : Process Done" }
+        }
     }catch (e : Exception){
         logger.error { "Process error" }
         throw Exception()
