@@ -34,6 +34,7 @@ class MessageListener(
 
     }catch (e : Exception){
         logger.error { "Process error" }
+        throw Exception()
     }
 
     @RabbitListener(queues = ["MA-DLQ"], containerFactory = "prefetchOneContainerFactory")
