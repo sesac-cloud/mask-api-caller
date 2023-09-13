@@ -40,7 +40,7 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: dev-mask-api
+          REPOSITORY: prod-mask-api
           IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
@@ -58,7 +58,7 @@ jobs:
       - name: Update Kubernetes resources
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: dev-mask-api
+          REPOSITORY: prod-mask-api
           IMAGE_TAG: ${{ github.sha }}
         run: |
           MANIFEST_PATH="k8s-manifest-repo/mask/deployment.yaml" 
